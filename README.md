@@ -1,14 +1,14 @@
-centos-syncthing
+fedora-syncthing
 ================
 
-A Syncthing image built on top of CentOS 7.
+A Syncthing image built on top of Fedora.
 
 Build
 -----
 
-    git clone https://github.com/dockingbay/centos-syncthing
-    cd centos-syncthing
-    docker build --force-rm -t dockingbay/centos-syncthing:latest .
+    git clone https://github.com/dockingbay/fedora-syncthing
+    cd fedora-syncthing
+    docker build --force-rm -t dockingbay/fedora-syncthing:latest .
 
 Run - general info and first steps
 ----------------------------------
@@ -35,7 +35,7 @@ like this:
         --net=host \
         -e SYNCTHING_UID=1000 \
         -e SYNCTHING_ADMIN_PASSWORD=test \
-        dockingbay/centos-syncthing:latest
+        dockingbay/fedora-syncthing:latest
 
 And then you can navigate to port `8384` and play with syncthing
 (enable discovery, add devices etc.). Log in with `admin/test`
@@ -53,7 +53,7 @@ way:
         -p 22000:22000 \
         -e SYNCTHING_UID=1000 \
         -e SYNCTHING_ADMIN_PASSWORD=test \
-        dockingbay/centos-syncthing:latest
+        dockingbay/fedora-syncthing:latest
 
 
 Run - volumes and persistence

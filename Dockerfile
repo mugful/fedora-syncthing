@@ -10,7 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-FROM centos:centos7
+FROM registry.fedoraproject.org/fedora:27
 MAINTAINER Jiri Stransky <jistr@jistr.com>
 
 RUN yum -y update; yum clean all
