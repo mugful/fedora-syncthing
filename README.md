@@ -3,12 +3,18 @@ fedora-syncthing
 
 A Syncthing image built on top of Fedora.
 
-Build
------
+Pull
+----
 
-    git clone https://github.com/dockingbay/fedora-syncthing
+Either pull from Quay.io:
+
+    docker pull quay.io/mugful/fedora-syncthing:master
+
+Or build your own:
+
+    git clone https://github.com/mugful/fedora-syncthing
     cd fedora-syncthing
-    docker build --force-rm -t dockingbay/fedora-syncthing:latest .
+    docker build --force-rm -t mugful/fedora-syncthing:master .
 
 Run - general info and first steps
 ----------------------------------
@@ -35,7 +41,7 @@ like this:
         --net=host \
         -e SYNCTHING_UID=1000 \
         -e SYNCTHING_ADMIN_PASSWORD=test \
-        dockingbay/fedora-syncthing:latest
+        quay.io/mugful/fedora-syncthing:master
 
 And then you can navigate to port `8384` and play with syncthing
 (enable discovery, add devices etc.). Log in with `admin/test`
@@ -53,7 +59,7 @@ way:
         -p 22000:22000 \
         -e SYNCTHING_UID=1000 \
         -e SYNCTHING_ADMIN_PASSWORD=test \
-        dockingbay/fedora-syncthing:latest
+        quay.io/mugful/fedora-syncthing:master
 
 
 Run - volumes and persistence
