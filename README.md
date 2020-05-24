@@ -95,7 +95,7 @@ the command line, so you can set `SYNCTHING_ADMIN_PASSWORD_BCRYPT`
 variable instead, which expects already hashed password in bcrypt
 format. You can obtain such hash beforehand e.g. like this:
 
-    python -c "import bcrypt; print(bcrypt.hashpw('mypassword', bcrypt.gensalt(log_rounds=10)))"
+    python3 -c "import bcrypt; print(bcrypt.hashpw('mypassword', bcrypt.gensalt(log_rounds=10)))"
 
 By default the GUI is only permitted to talk over TLS connections. You
 can put your custom TLS key+cert pair for GUI into
