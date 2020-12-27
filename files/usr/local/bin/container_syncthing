@@ -37,7 +37,7 @@ if [ ! -e $SYNCTHING_HOME/.config/syncthing/config.xml ]; then
         exit 1
     fi
     if [ -z "${SYNCTHING_ADMIN_PASSWORD_BCRYPT:-}" ]; then
-        SYNCTHING_ADMIN_PASSWORD_BCRYPT=$(python -c "import bcrypt; print(bcrypt.hashpw('$SYNCTHING_ADMIN_PASSWORD', bcrypt.gensalt(log_rounds=10)))")
+        SYNCTHING_ADMIN_PASSWORD_BCRYPT=$(python3 -c "import bcrypt; print(bcrypt.hashpw(b'$SYNCTHING_ADMIN_PASSWORD', bcrypt.gensalt()))")
     fi
 
     su - $SYNCTHING_USERNAME -c "/usr/bin/syncthing -generate $SYNCTHING_HOME/.config/syncthing"
