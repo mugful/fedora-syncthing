@@ -40,7 +40,11 @@ if [ ! -e $SYNCTHING_HOME/.config/syncthing/config.xml ]; then
         SYNCTHING_ADMIN_PASSWORD_BCRYPT=$(python3 -c "import bcrypt; print(bcrypt.hashpw(b'$SYNCTHING_ADMIN_PASSWORD', bcrypt.gensalt()))")
     fi
 
-    su - $SYNCTHING_USERNAME -c "/usr/bin/syncthing -generate $SYNCTHING_HOME/.config/syncthing"
+    if [ "$(id -u)" == "$SYNCTHING_UID" ]; then
+        /usr/bin/syncthing -generate $SYNCTHING_HOME/.config/syncthing
+    else
+        su - $SYNCTHING_USERNAME -c "/usr/bin/syncthing -generate $SYNCTHING_HOME/.config/syncthing"
+    fi
 
     # listen on all addrs, rely on docker/host for access control
     sed -i -e 's|<listenAddress>.*</listenAddress>|<listenAddress>tcp://:22000</listenAddress>|' $SYNCTHING_HOME/.config/syncthing/config.xml
@@ -51,10 +55,10 @@ if [ ! -e $SYNCTHING_HOME/.config/syncthing/config.xml ]; then
          in_gui    { gsub(/<address>.*<\/address>/,"<address>:8384</address>"); print }
          !in_gui   { print }' \
          $SYNCTHING_HOME/.config/syncthing/config.xml \
-         > config.xml.awked
+         > $SYNCTHING_HOME/.config/syncthing/config.xml.awked
     # don't mv, we want to preserve ownership/permissions
-    cat config.xml.awked > $SYNCTHING_HOME/.config/syncthing/config.xml
-    rm config.xml.awked
+    cat $SYNCTHING_HOME/.config/syncthing/config.xml.awked > $SYNCTHING_HOME/.config/syncthing/config.xml
+    rm $SYNCTHING_HOME/.config/syncthing/config.xml.awked
 
     # set user/password for GUI
     # FIXME: escaping would be nice, as currently pipe character
@@ -77,4 +81,10 @@ if [ ! -e $SYNCTHING_HOME/.config/syncthing/config.xml ]; then
     sed -i -e 's|<minHomeDiskFreePct>.*</minHomeDiskFreePct>|<minHomeDiskFreePct>20</minHomeDiskFreePct>|' $SYNCTHING_HOME/.config/syncthing/config.xml
 fi
 
-exec su - $SYNCTHING_USERNAME -c /usr/bin/syncthing
+if [ "$(id -u)" == "$SYNCTHING_UID" ]; then
+    # --userns=keep-id sets root dir as HOME, fix it first
+    export HOME="$SYNCTHING_HOME"
+    exec /usr/bin/syncthing
+else
+    exec su - $SYNCTHING_USERNAME -c /usr/bin/syncthing
+fi
