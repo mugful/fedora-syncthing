@@ -10,7 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-FROM registry.fedoraproject.org/fedora:33
+FROM quay.io/fedora/fedora:33
 MAINTAINER Jiri Stransky <jistr@jistr.com>
 
 RUN yum -y update --refresh; yum clean all
