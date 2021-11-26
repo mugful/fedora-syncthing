@@ -1,0 +1,28 @@
+[Unit]
+Description=Syncthing rootless container
+
+[Service]
+Restart=always
+RestartSec=10
+
+ExecStart=/usr/bin/podman run \
+    -d \
+    --conmon-pidfile /run/user/%U/user-syncthing.pid \
+    --name syncthing \
+    -e SYNCTHING_USERNAME=%u \
+    -e SYNCTHING_UID=%U \
+    -e SYNCTHING_HOME=%h \
+    --userns=keep-id \
+    -v %h/.config/syncthing:%h/.config/syncthing:z \
+    -v %h/sync:%h/sync:z \
+    --net host \
+    quay.io/mugful/fedora-syncthing
+
+ExecStop=/usr/bin/podman stop -t 10 syncthing
+ExecStopPost=/usr/bin/podman rm -f syncthing
+KillMode=none
+Type=forking
+PIDFile=/run/user/%U/user-syncthing.pid
+
+[Install]
+WantedBy=default.target
