@@ -86,5 +86,5 @@ if [ "$(id -u)" == "$SYNCTHING_UID" ]; then
     export HOME="$SYNCTHING_HOME"
     exec /usr/bin/syncthing
 else
-    exec su - $SYNCTHING_USERNAME -c /usr/bin/syncthing
+    exec sudo -iu $SYNCTHING_USERNAME -c /usr/bin/syncthing
 fi
