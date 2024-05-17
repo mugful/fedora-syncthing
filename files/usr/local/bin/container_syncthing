@@ -16,69 +16,12 @@ export SYNCTHING_HOME="${SYNCTHING_HOME:-/home/$SYNCTHING_USERNAME}"
 # syncthing config).
 if ! id -u $SYNCTHING_USERNAME; then
     useradd -u $SYNCTHING_UID $SYNCTHING_USERNAME
-    mkdir -p $SYNCTHING_HOME/.config/syncthing
-    mkdir -p $SYNCTHING_HOME/.config/syncthing/sync
-    chown    $SYNCTHING_USERNAME: $SYNCTHING_HOME
-    chown    $SYNCTHING_USERNAME: $SYNCTHING_HOME/.config
-    chown -R $SYNCTHING_USERNAME: $SYNCTHING_HOME/.config/syncthing
-    chown -R $SYNCTHING_USERNAME: $SYNCTHING_HOME/sync
 fi
 
 # Ensure that the UID of the syncthing user is as requested.
 if [ "$(id -u $SYNCTHING_USERNAME)" != $SYNCTHING_UID ]; then
-    echo "User $SYNCTHING_USERNAME already exists with incorrect UID $(id -u $SYNCTHING_USERNAME)"
+    echo "ERROR: User $SYNCTHING_USERNAME already exists with incorrect UID $(id -u $SYNCTHING_USERNAME)"
     exit 1
-fi
-
-# Generate config if it's not present.
-if [ ! -e $SYNCTHING_HOME/.config/syncthing/config.xml ]; then
-    if [ -z "${SYNCTHING_ADMIN_PASSWORD:-}" -a -z "${SYNCTHING_ADMIN_PASSWORD_BCRYPT:-}" ]; then
-        echo "When starting syncthing without existing config, SYNCTHING_ADMIN_PASSWORD or SYNCTHING_ADMIN_PASSWORD_BCRYPT must be set."
-        exit 1
-    fi
-    if [ -z "${SYNCTHING_ADMIN_PASSWORD_BCRYPT:-}" ]; then
-        SYNCTHING_ADMIN_PASSWORD_BCRYPT=$(python3 -c "import bcrypt; print(bcrypt.hashpw(b'$SYNCTHING_ADMIN_PASSWORD', bcrypt.gensalt()))")
-    fi
-
-    if [ "$(id -u)" == "$SYNCTHING_UID" ]; then
-        /usr/bin/syncthing -generate $SYNCTHING_HOME/.config/syncthing
-    else
-        su - $SYNCTHING_USERNAME -c "/usr/bin/syncthing -generate $SYNCTHING_HOME/.config/syncthing"
-    fi
-
-    # listen on all addrs, rely on docker/host for access control
-    sed -i -e 's|<listenAddress>.*</listenAddress>|<listenAddress>tcp://:22000</listenAddress>|' $SYNCTHING_HOME/.config/syncthing/config.xml
-
-    # listen on all addrs also for GUI
-    awk '/<gui /   { in_gui = 1 }
-         /<\/gui>/ { in_gui = 0 }
-         in_gui    { gsub(/<address>.*<\/address>/,"<address>:8384</address>"); print }
-         !in_gui   { print }' \
-         $SYNCTHING_HOME/.config/syncthing/config.xml \
-         > $SYNCTHING_HOME/.config/syncthing/config.xml.awked
-    # don't mv, we want to preserve ownership/permissions
-    cat $SYNCTHING_HOME/.config/syncthing/config.xml.awked > $SYNCTHING_HOME/.config/syncthing/config.xml
-    rm $SYNCTHING_HOME/.config/syncthing/config.xml.awked
-
-    # set user/password for GUI
-    # FIXME: escaping would be nice, as currently pipe character
-    # cannot appear in the password
-    sed -i -re "s|^( *)</gui>|\1    <user>${SYNCTHING_ADMIN_USER:-admin}</user>\n\1    <password>$SYNCTHING_ADMIN_PASSWORD_BCRYPT</password>\n\1</gui>|" $SYNCTHING_HOME/.config/syncthing/config.xml
-
-    # set TLS enforcing (defaults to true)
-    sed -i -re "s|(<gui .*) tls=\"false\"|\1 tls=\"${SYNCTHING_ADMIN_TLS:-true}\"|" $SYNCTHING_HOME/.config/syncthing/config.xml
-
-    # locked down settings by default
-    sed -i -e 's|<globalAnnounceEnabled>.*</globalAnnounceEnabled>|<globalAnnounceEnabled>false</globalAnnounceEnabled>|' $SYNCTHING_HOME/.config/syncthing/config.xml
-    sed -i -e 's|<localAnnounceEnabled>.*</localAnnounceEnabled>|<localAnnounceEnabled>false</localAnnounceEnabled>|' $SYNCTHING_HOME/.config/syncthing/config.xml
-    sed -i -e 's|<natEnabled>.*</natEnabled>|<natEnabled>false</natEnabled>|' $SYNCTHING_HOME/.config/syncthing/config.xml
-    sed -i -e 's|<relaysEnabled>.*</relaysEnabled>|<relaysEnabled>false</relaysEnabled>|' $SYNCTHING_HOME/.config/syncthing/config.xml
-    sed -i -e 's|<urAccepted>.*</urAccepted>|<urAccepted>-1</urAccepted>|' $SYNCTHING_HOME/.config/syncthing/config.xml
-    sed -i -e 's|<autoUpgradeIntervalH>.*</autoUpgradeIntervalH>|<autoUpgradeIntervalH>0</autoUpgradeIntervalH>|' $SYNCTHING_HOME/.config/syncthing/config.xml
-
-    # sane settings for server environment
-    sed -i -e 's|<startBrowser>.*</startBrowser>|<startBrowser>false</startBrowser>|' $SYNCTHING_HOME/.config/syncthing/config.xml
-    sed -i -e 's|<minHomeDiskFreePct>.*</minHomeDiskFreePct>|<minHomeDiskFreePct>20</minHomeDiskFreePct>|' $SYNCTHING_HOME/.config/syncthing/config.xml
 fi
 
 if [ "$(id -u)" == "$SYNCTHING_UID" ]; then
@@ -86,5 +29,6 @@ if [ "$(id -u)" == "$SYNCTHING_UID" ]; then
     export HOME="$SYNCTHING_HOME"
     exec /usr/bin/syncthing
 else
-    exec sudo -iu $SYNCTHING_USERNAME /usr/bin/syncthing
+    echo "ERROR: Expected to run as UID $SYNCTHING_UID but running as UID $(id -u)"
+    exit 1
 fi
