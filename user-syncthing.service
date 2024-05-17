@@ -13,7 +13,7 @@ ExecStart=/usr/bin/podman run \
     -e SYNCTHING_UID=%U \
     -e SYNCTHING_HOME=%h \
     --userns=keep-id \
-    -v %h/.config/syncthing:%h/.config/syncthing:z \
+    -v %h/.local/state/syncthing:%h/.local/state/syncthing:z \
     -v %h/sync:%h/sync:z \
     --net host \
     quay.io/mugful/fedora-syncthing
