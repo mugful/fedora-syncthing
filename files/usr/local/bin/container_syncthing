@@ -28,6 +28,8 @@ if [ "$(id -u)" == "$SYNCTHING_UID" ]; then
     # --userns=keep-id sets root dir as HOME, fix it first
     export HOME="$SYNCTHING_HOME"
     exec /usr/bin/syncthing
+elif [ "$(id -u)" == 0 ]; then
+    exec sudo -iu $SYNCTHING_USERNAME /usr/bin/syncthing
 else
     echo "ERROR: Expected to run as UID $SYNCTHING_UID but running as UID $(id -u)"
     exit 1
