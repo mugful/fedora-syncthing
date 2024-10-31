@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-dnf -y install syncthing python3-py-bcrypt
+dnf -y install syncthing python3-bcrypt
 
 mkdir -p /home/syncthing/.config/syncthing
 
